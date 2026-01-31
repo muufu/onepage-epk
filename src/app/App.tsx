@@ -1,71 +1,134 @@
-import { AudioPlayer } from '@/app/components/AudioPlayer';
-import { Mail, Phone, Instagram, MapPin } from 'lucide-react';
+import { useRef, useState } from "react";
+import { Mail, Phone, Instagram, MapPin } from "lucide-react";
 
 export default function App() {
-  // Replace this URL with your actual mix/set audio file
-  const audioSrc = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+  /** ---------------- AUDIO ---------------- */
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+
+    setIsPlaying(!isPlaying);
+  };
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return "00:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  /** ---------------- DATA ---------------- */
   const venues = [
-    { name: 'Mission NYC', instagram: 'https://instagram.com/missionnyc' },
-    { name: 'Slate', instagram: 'https://instagram.com/slateny' },
-    { name: 'Aura57', instagram: 'https://instagram.com/aura57' },
-    { name: 'Output BK', instagram: 'https://instagram.com/outputbk' },
-    { name: 'Good Room', instagram: 'https://instagram.com/goodroombk' },
-    { name: 'Elsewhere', instagram: 'https://instagram.com/elsewhere.brooklyn' }
+    { name: "Mission NYC", instagram: "https://instagram.com/mission.ny" },
+    { name: "Elsewhere", instagram: "https://instagram.com/elsewherespace" },
+    { name: "23 Music Room", instagram: "https://instagram.com/23_music_room" },
+    { name: "Barc", instagram: "https://instagram.com/barc.cnx" },
+    { name: "Honeys", instagram: "https://instagram.com/honeysbrooklyn" },
+    { name: "00:00", instagram: "https://instagram.com/0000.nyc" },
   ];
 
-  const cities = ['NYC', 'London', 'Taipei', 'Chiang Mai'];
+  const cities = ["NYC", "London", "Taipei", "Chiang Mai"];
 
   const quickFacts = [
-    { label: 'Genres', value: 'Bass House, Hip Hop, EDM' },
-    { label: 'Set Lengths', value: '1–4 hrs' },
-    { label: 'Based In', value: 'NYC (traveling)' },
-    { label: 'Equipment', value: 'CDJs, Controller' }
+    {
+      label: "Genres",
+      value: "Tech House, Baile Funk, Jersey Club, Hip Hop, Big Room",
+    },
+    { label: "Set Lengths", value: "1–4 hrs" },
+    { label: "Based In", value: "Travelling – Bali & San Francisco" },
+    { label: "Equipment", value: "CDJs, Controller" },
   ];
 
+  /** ---------------- RENDER ---------------- */
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-md mx-auto">
-        {/* Section 1: Audio-First Hero - Takes up 2/3 of screen */}
-        <div className="px-6 pt-12 pb-6 min-h-[66vh] flex flex-col justify-center">
-          <div className="space-y-6">
-            {/* DJ Photo and Name */}
-            <div className="flex flex-col items-center space-y-4">
-              <img
-                src="https://images.unsplash.com/photo-1599839575729-0009ea68e319?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxESiUyMHBvcnRyYWl0JTIwaGVhZHNob3R8ZW58MXx8fHwxNzY5MTQ5MTk5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                alt="MUUFU"
-                className="w-24 h-24 rounded-full object-cover border-2 border-neutral-800"
-              />
-              <div className="space-y-2 text-center">
-                <h1 className="text-5xl tracking-tight">MUUFU</h1>
-                <p className="text-neutral-400 text-sm">
-                  High-energy sets for any room
-                </p>
+
+        {/* ---------- HERO ---------- */}
+        <div className="px-6 pt-12 pb-8 min-h-[65vh] flex flex-col justify-center space-y-8">
+
+          {/* Profile (NO IMAGE) */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-center">
+              <h1 className="text-5xl tracking-tight">MUUFU</h1>
+              <p className="text-neutral-400 text-sm mt-1">
+                Electric sets for any room
+              </p>
+            </div>
+          </div>
+
+          {/* Audio Player */}
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 space-y-3">
+            <button
+              onClick={togglePlay}
+              className="w-full py-3 rounded-full bg-white text-black font-medium hover:bg-neutral-100 transition"
+            >
+              {isPlaying ? "Pause" : "Listen"}
+            </button>
+
+            {/* Time bar */}
+            <div className="flex items-center text-xs text-neutral-400 gap-2">
+              <span>{formatTime(currentTime)}</span>
+              <div className="flex-1 h-1 bg-neutral-700 rounded overflow-hidden">
+                <div
+                  className="h-full bg-white"
+                  style={{
+                    width: duration
+                      ? `${(currentTime / duration) * 100}%`
+                      : "0%",
+                  }}
+                />
               </div>
+              <span>{formatTime(duration)}</span>
             </div>
-            
-            <AudioPlayer src={audioSrc} djName="MUUFU" />
-            
-            {/* Status Bar (moved here) */}
-            <div className="text-center py-2 text-xs text-neutral-400">
-              NYC-based DJ · Club / Corporate / Pop-ups
-            </div>
+
+            {/* Hidden audio element */}
+            <audio
+              ref={audioRef}
+              src="/audio/ice-cream-v2.mp3"
+              onTimeUpdate={() =>
+                audioRef.current &&
+                setCurrentTime(audioRef.current.currentTime)
+              }
+              onLoadedMetadata={() =>
+                audioRef.current &&
+                setDuration(audioRef.current.duration)
+              }
+              onEnded={() => setIsPlaying(false)}
+            />
+          </div>
+
+          <div className="text-center text-xs text-neutral-500">
+            NYC DJ · Clubs / Bars / Pop-ups
           </div>
         </div>
 
-        {/* Section 2: Credibility Strip */}
+        {/* ---------- CREDIBILITY ---------- */}
         <div className="px-6 py-8 border-t border-neutral-800 space-y-6">
+
           {/* Venues */}
           <div>
-            <h3 className="text-xs text-neutral-500 uppercase tracking-wider mb-3">Venues</h3>
+            <h3 className="text-xs text-neutral-500 uppercase tracking-wider mb-3">
+              Venues
+            </h3>
             <div className="flex flex-wrap gap-2">
-              {venues.map((venue, index) => (
+              {venues.map((venue) => (
                 <a
-                  key={index}
+                  key={venue.name}
                   href={venue.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-full text-sm text-neutral-300 hover:bg-neutral-800 hover:border-neutral-700 transition-colors flex items-center gap-1.5"
+                  className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-full text-sm text-neutral-300 hover:bg-neutral-800 transition flex items-center gap-1.5"
                 >
                   <Instagram className="w-3.5 h-3.5" />
                   {venue.name}
@@ -76,11 +139,13 @@ export default function App() {
 
           {/* Cities */}
           <div>
-            <h3 className="text-xs text-neutral-500 uppercase tracking-wider mb-3">Cities</h3>
+            <h3 className="text-xs text-neutral-500 uppercase tracking-wider mb-3">
+              Cities
+            </h3>
             <div className="flex flex-wrap gap-2">
-              {cities.map((city, index) => (
+              {cities.map((city) => (
                 <div
-                  key={index}
+                  key={city}
                   className="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-full text-sm text-neutral-300 flex items-center gap-1.5"
                 >
                   <MapPin className="w-3.5 h-3.5" />
@@ -91,53 +156,46 @@ export default function App() {
           </div>
         </div>
 
-        {/* Section 3: Quick Facts */}
-        <div className="px-6 py-8 border-t border-neutral-800">
-          <div className="grid grid-cols-1 gap-4">
-            {quickFacts.map((fact, index) => (
-              <div key={index} className="flex justify-between items-start py-2">
-                <span className="text-sm text-neutral-400 w-32 shrink-0">
-                  {fact.label}
-                </span>
-                <span className="text-sm text-white text-right">
-                  {fact.value}
-                </span>
-              </div>
-            ))}
-          </div>
+        {/* ---------- QUICK FACTS ---------- */}
+        <div className="px-6 py-8 border-t border-neutral-800 space-y-4">
+          {quickFacts.map((fact) => (
+            <div key={fact.label} className="flex justify-between text-sm">
+              <span className="text-neutral-400">{fact.label}</span>
+              <span className="text-white text-right">{fact.value}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Section 4: Contact */}
+        {/* ---------- CONTACT ---------- */}
         <div className="px-6 py-8 border-t border-neutral-800 space-y-3">
           <a
-            href="mailto:booking@djapex.com"
-            className="flex items-center justify-center gap-3 w-full py-4 bg-white text-black rounded-full hover:bg-neutral-100 transition-colors"
+            href="mailto:contact.muufu@gmail.com"
+            className="flex items-center justify-center gap-3 w-full py-4 bg-white text-black rounded-full"
           >
             <Mail className="w-5 h-5" />
-            <span className="font-medium">booking@djapex.com</span>
+            contact.muufu@gmail.com
           </a>
-          
+
           <a
-            href="tel:+15551234567"
-            className="flex items-center justify-center gap-3 w-full py-4 bg-neutral-900 border border-neutral-800 rounded-full hover:bg-neutral-800 transition-colors"
+            href="tel:+15103580938"
+            className="flex items-center justify-center gap-3 w-full py-4 bg-neutral-900 border border-neutral-800 rounded-full"
           >
             <Phone className="w-5 h-5" />
-            <span className="font-medium">+1 (555) 123-4567</span>
+            +1 (510) 358-0938
           </a>
-          
+
           <a
-            href="https://instagram.com/djapex"
+            href="https://instagram.com/marissa_fu"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 w-full py-4 bg-neutral-900 border border-neutral-800 rounded-full hover:bg-neutral-800 transition-colors"
+            className="flex items-center justify-center gap-3 w-full py-4 bg-neutral-900 border border-neutral-800 rounded-full"
           >
             <Instagram className="w-5 h-5" />
-            <span className="font-medium">@djapex</span>
+            @marissa_fu
           </a>
         </div>
 
-        {/* Minimal Footer Space */}
-        <div className="h-8"></div>
+        <div className="h-10" />
       </div>
     </div>
   );
